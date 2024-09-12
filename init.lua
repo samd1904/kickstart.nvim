@@ -102,7 +102,7 @@ vim.g.have_nerd_font = true
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
+vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.opt.mouse = 'a'
@@ -674,7 +674,41 @@ require('lazy').setup({
       }
     end,
   },
-
+  { --nvterm
+    'NvChad/nvterm',
+    config = function()
+      require('nvterm').setup()
+      local terminal = require 'nvterm.terminal'
+      local toggle_modes = { 'n', 't' }
+      local mappings = {
+        {
+          toggle_modes,
+          '<A-h>',
+          function()
+            terminal.toggle 'horizontal'
+          end,
+        },
+        {
+          toggle_modes,
+          '<A-v>',
+          function()
+            terminal.toggle 'vertical'
+          end,
+        },
+        {
+          toggle_modes,
+          '<A-i>',
+          function()
+            terminal.toggle 'float'
+          end,
+        },
+      }
+      local opts = { noremap = true, silent = true }
+      for _, mapping in ipairs(mappings) do
+        vim.keymap.set(mapping[1], mapping[2], mapping[3], opts)
+      end
+    end,
+  },
   { -- Autoformat
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
@@ -833,7 +867,75 @@ require('lazy').setup({
       }
     end,
   },
-
+  --BufferLine
+  {
+    'akinsho/bufferline.nvim',
+    version = '*',
+    dependencies = 'nvim-tree/nvim-web-devicons',
+    config = function()
+      local bufferline = require 'bufferline'
+      bufferline.setup {
+        options = {
+          mode = 'buffers',
+          style_preset = bufferline.style_preset.default,
+          themable = true,
+          numbers = 'none',
+          close_command = 'bdelete! %d',
+          left_mouse_command = 'buffer %d', -- can be a string | function, | false see "Mouse actions"
+          middle_mouse_command = nil, -- can be a string | function, | false see "Mouse actions"
+          indicator = {
+            icon = '▎', -- this should be omitted if indicator style is not 'icon'
+            style = 'icon',
+          },
+          buffer_close_icon = '󰅖',
+          modified_icon = '●',
+          close_icon = '',
+          left_trunc_marker = '',
+          right_trunc_marker = '',
+          max_name_length = 18,
+          max_prefix_length = 15, -- prefix used when a buffer is de-duplicated
+          truncate_names = true, -- whether or not tab names should be truncated
+          tab_size = 18,
+          diagnostics = 'nvim_lsp',
+          diagnostics_update_in_insert = false, -- only applies to coc
+          diagnostics_update_on_event = true, -- use nvim's diagnostic handler
+          -- The diagnostics indicator can be set to nil to keep the buffer name highlight but delete the highlighting
+          diagnostics_indicator = function(count, level, diagnostics_dict, context)
+            return '(' .. count .. ')'
+          end,
+          offsets = {
+            {
+              filetype = 'NvimTree',
+              text = 'File Explorer',
+              text_align = 'left',
+              separator = true,
+            },
+          },
+          color_icons = true,
+          show_buffer_icons = true, -- disable filetype icons for buffers
+          show_buffer_close_icons = true,
+          show_close_icon = true,
+          show_tab_indicators = true,
+          show_duplicate_prefix = true, -- whether to show duplicate buffer prefix
+          duplicates_across_groups = true, -- whether to consider duplicate paths in different groups as duplicates
+          persist_buffer_sort = true, -- whether or not custom sorted buffers should persist
+          move_wraps_at_ends = false, -- whether or not the move command "wraps" at the first or last position
+          -- can also be a table containing 2 custom separators
+          -- [focused and unfocused]. eg: { '|', '|' }
+          separator_style = 'thin',
+          enforce_regular_tabs = false,
+          always_show_bufferline = true,
+          auto_toggle_bufferline = true,
+          hover = {
+            enabled = true,
+            delay = 200,
+            reveal = { 'close' },
+          },
+          sort_by = 'insert_after_current',
+        },
+      }
+    end,
+  },
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
@@ -845,13 +947,18 @@ require('lazy').setup({
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
-      vim.cmd.colorscheme 'sorbet'
+      vim.cmd.colorscheme 'flow'
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
   },
-
+  {
+    '0xstepit/flow.nvim',
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  },
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
